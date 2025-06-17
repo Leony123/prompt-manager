@@ -1,0 +1,322 @@
+{% extends 'prompts/base.html' %}
+{% block content %}
+<style>
+  body {
+    background-color: #f8f8f8;
+  }
+  .navbar-brand {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #ff9800 !important;
+    display: flex;
+    align-items: center;
+  }
+  .navbar-brand img {
+    height: 35px;
+    margin-right: 10px;
+  }
+  .nav-link {
+    color: #222 !important;
+    font-weight: 500;
+  }
+  .btn-primary {
+    background-color: #ff9800;
+    border-color: #ff9800;
+  }
+  .btn-primary:hover {
+    background-color: #e68900;
+    border-color: #e68900;
+  }
+  .fw-bold, h3, h5, .modal-title {
+    color: #ff9800 !important;
+  }
+  .text-muted {
+    color: #888 !important;
+  }
+  .required-star {
+    color: #222; /* Changed to dark grey/black as per image */
+    margin-left: 0.2em;
+    font-size: 1em;
+    font-weight: bold;
+  }
+  .select-multi {
+    background: #f8f8f8;
+    color: #222;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    min-height: 44px;
+    padding: 0.5em 0.75em;
+    font-size: 1.1em;
+  }
+  .select-multi option {
+    background: #fff;
+    color: #222;
+    font-size: 1em;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animated-card {
+    animation: fadeIn 0.5s ease-out;
+  }
+  /* Styling for form inputs to match the image */
+  .form-control,
+  .select2-container--default .select2-selection--single,
+  .select2-container--default .select2-selection--multiple {
+    background-color: #f8f8f8; /* Match image */
+    border-radius: 8px; /* Match image */
+    border: 1px solid #eee; /* Subtle border */
+  }
+  .form-control:hover,
+  .form-select:hover,
+  .select2-container--default .select2-selection--single:hover,
+  .select2-container--default .select2-selection--multiple:hover {
+    box-shadow: 0 0 0 2px #ff980033;
+  }
+  /* Styling for the light cancel button */
+  .btn-light {
+    background-color: #f8f8f8 !important; /* Make sure it's light */
+    border-color: #f8f8f8 !important; /* Remove border */
+  }
+  .btn-light:hover {
+    background-color: #e0e0e0 !important; /* Slightly darker on hover */
+    border-color: #e0e0e0 !important;
+  }
+  .form-control::placeholder {
+    color: #aaa !important;
+  }
+  @keyframes breathe {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+  .prompt-card {
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  .prompt-card:hover {
+    animation: breathe 1.5s ease-in-out infinite;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+  }
+  .prompt-card .action-buttons {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .prompt-card:hover .action-buttons {
+    opacity: 1;
+  }
+  .prompt-card .btn {
+    padding: 0.4rem 0.6rem;
+  }
+  .prompt-card .btn i {
+    font-size: 1rem;
+  }
+  .prompt-tags {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .prompt-tag {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    background: #f0f0f0;
+    border-radius: 4px;
+    color: #666;
+  }
+  .prompt-content {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.5rem;
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .copy-success {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: none;
+    z-index: 9999;
+  }
+  .copy-success.show {
+    display: flex;
+    align-items: center;
+  }
+  .toast-notification {
+    position: fixed;
+    top: 20px; /* Adjusted to be at the top */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(40, 167, 69, 0.9); /* Greenish background for success */
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: none;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  .toast-notification.show {
+    display: flex;
+  }
+
+  /* Tag Management Page Specific Styles */
+  .tag-section-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+  }
+  .tag-badge-container .badge {
+    font-size: 0.9rem;
+    padding: 0.5em 1em;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .tag-badge-container .badge .delete-tag-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 0.5rem;
+    line-height: 1;
+  }
+  .tag-badge-container .badge .delete-tag-btn:hover {
+    color: #dc3545;
+  }
+  .tag-badge-container .badge.bg-secondary {
+    background-color: #e9ecef !important;
+    color: #495057 !important;
+  }
+  .tag-badge-container .badge.bg-info {
+    background-color: #e0f7fa !important;
+    color: #007bff !important;
+  }
+
+</style>
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+    <h3 class="fw-bold d-flex align-items-center">
+      <i class="bi bi-tags" style="color:#ff9800;font-size:2rem;margin-right:0.5rem;"></i>
+      标签管理
+    </h3>
+    <a href="{% url 'prompt_list' %}" class="btn btn-outline-secondary rounded-3">
+      <i class="bi bi-arrow-left"></i> 返回提示词列表
+    </a>
+  </div>
+
+  <div class="card shadow-sm p-4 mb-4" style="background:#fff;border-radius:18px;">
+    <h5 class="tag-section-title mb-3">
+        <i class="bi bi-plus-circle me-2"></i> 新建标签
+    </h5>
+    <form class="row g-3" method="post" action="{% url 'tag_manage' %}">
+      {% csrf_token %}
+      <div class="col-md-6 col-lg-4">
+        <input type="text" class="form-control" name="tag_name" placeholder="输入新标签名称..." required>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-plus-lg me-1"></i> 添加标签
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card shadow-sm p-4 mb-4" style="background:#fff;border-radius:18px;">
+    <h5 class="tag-section-title mb-3">
+        <i class="bi bi-globe me-2"></i> 公共标签
+    </h5>
+    <div class="tag-badge-container">
+      {% if public_tags %}
+        {% for tag in public_tags %}
+          <span class="badge bg-secondary">{{ tag.name }}</span>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted">暂无公共标签。</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card shadow-sm p-4" style="background:#fff;border-radius:18px;">
+    <h5 class="tag-section-title mb-3">
+        <i class="bi bi-person-fill me-2"></i> 私有标签
+    </h5>
+    <div class="tag-badge-container">
+      {% if private_tags %}
+        {% for tag in private_tags %}
+          <span class="badge bg-info">{{ tag.name }}
+            <button type="button" class="delete-tag-btn" data-bs-toggle="modal" data-bs-target="#deleteTagModal" data-bs-tag-id="{{ tag.id }}" title="删除标签"><i class="bi bi-x-circle-fill"></i></button>
+          </span>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted">暂无私有标签。</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Delete Tag Confirmation Modal -->
+  <div class="modal fade" id="deleteTagModal" tabindex="-1" aria-labelledby="deleteTagModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteTagModalLabel">确认删除标签</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          您确定要删除这个私有标签吗？此操作无法撤销，并且会从所有关联的提示词中移除该标签。
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <form id="deleteTagForm" method="post" action="">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">删除</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // JavaScript for handling tag deletion modal
+  var deleteTagModal = document.getElementById('deleteTagModal');
+  if (deleteTagModal) {
+    deleteTagModal.addEventListener('show.bs.modal', function (event) {
+      var button = event.relatedTarget; // Button that triggered the modal
+      var tagId = button.getAttribute('data-bs-tag-id'); // Extract info from data-bs-tag-id attribute
+      var form = deleteTagModal.querySelector('#deleteTagForm');
+      form.action = '/prompts/delete_tag/' + tagId + '/'; // Set the form action dynamically
+    });
+  }
+
+  // Auto-dismiss Django messages alerts
+  document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(alert) {
+      const bsAlert = new bootstrap.Alert(alert); // Initialize Bootstrap Alert
+      setTimeout(function() {
+        bsAlert.close(); // Close the alert after 5 seconds
+      }, 5000);
+    });
+  });
+</script>
+{% endblock %} 

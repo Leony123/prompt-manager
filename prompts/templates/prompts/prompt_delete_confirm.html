@@ -1,0 +1,15 @@
+{% extends 'prompts/base.html' %}
+{% block content %}
+<div class="container py-5">
+  <div class="card shadow-lg p-4 text-center" style="background:#fff;color:#222;max-width:500px;margin:auto;">
+    <h3 class="fw-bold mb-4" style="color:#ff9800;"><i class="bi bi-exclamation-triangle"></i> 删除提示词</h3>
+    <p class="mb-4">确定要删除提示词 <span class="fw-bold" style="color:#ff9800;">{{ prompt.title }}</span> 吗？此操作不可恢复。</p>
+    <form method="post" action="{% url 'prompt_delete' pk=prompt.id %}">
+      {% csrf_token %}
+      <input type="hidden" name="confirm" value="1">
+      <button type="submit" class="btn btn-danger me-2"><i class="bi bi-trash"></i> 确认删除</button>
+      <a href="{% url 'prompt_list' %}" class="btn btn-outline-secondary">取消</a>
+    </form>
+  </div>
+</div>
+{% endblock %} 
