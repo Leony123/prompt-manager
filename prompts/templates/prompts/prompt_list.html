@@ -563,11 +563,7 @@
               <div class="col-12 mb-2">
                 <label for="chatModel" class="form-label mb-0 fw-bold">选择模型</label>
                 <select id="chatModel" class="form-select form-select-sm">
-                  <option>llama2</option>
-                  <option>qwen3:8b</option>
-                  <option>glm-4</option>
-                  <option>phi3</option>
-                  <option>自定义...</option>
+                  <option value="">加载中...</option>
                 </select>
               </div>
               <div class="col-auto">
@@ -815,6 +811,50 @@
     const chatMaxTokensInput = document.getElementById('chatMaxTokens');
     const chatTopPInput = document.getElementById('chatTopP');
     const initialChatMessage = document.getElementById('initialChatMessage'); // 获取初始提示消息元素
+
+    // 加载Ollama模型列表
+    async function loadOllamaModels() {
+      if (!chatModelSelect) return;
+      
+      try {
+        const response = await fetch('/api/ollama_models/', {
+          method: 'GET',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.models && data.models.length > 0) {
+          // 清空现有选项
+          chatModelSelect.innerHTML = '';
+          
+          // 添加模型选项
+          data.models.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model;
+            option.textContent = model;
+            chatModelSelect.appendChild(option);
+          });
+          
+          // 设置默认选择第一个模型
+          if (chatModelSelect.options.length > 0) {
+            chatModelSelect.selectedIndex = 0;
+          }
+        } else {
+          // 如果获取失败，显示错误信息
+          chatModelSelect.innerHTML = '<option value="">获取模型失败</option>';
+          console.error('Failed to load models:', data.error);
+        }
+      } catch (error) {
+        console.error('Error loading models:', error);
+        chatModelSelect.innerHTML = '<option value="">连接错误</option>';
+      }
+    }
+
+    // 页面加载时获取模型列表
+    loadOllamaModels();
 
     if (chatInputForm && chatInput && chatMessages && chatModelSelect && chatTemperatureInput && chatMaxTokensInput && chatTopPInput) {
       chatInputForm.addEventListener('submit', async function(event) {

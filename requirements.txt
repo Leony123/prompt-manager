@@ -19,4 +19,7 @@ django-csp==3.7  # 内容安全策略
 
 # 工具包
 Pillow==10.2.0  # 图像处理（如果需要处理图片）
-python-dateutil==2.8.2  # 日期时间处理 
+python-dateutil==2.8.2  # 日期时间处理
+
+langchain==0.3.25
+requests==2.31.0  # HTTP请求库，用于与Ollama API通信

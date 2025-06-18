@@ -15,5 +15,6 @@ urlpatterns = [
     path('prompts/<int:pk>/delete/', views.prompt_delete, name='prompt_delete'),
     path('api/prompt/<int:pk>/update/', views.update_prompt, name='update_prompt'),
     path('api/ollama_chat/', views.ollama_chat, name='ollama_chat'),
+    path('api/ollama_models/', views.get_ollama_models, name='get_ollama_models'),
     path('tags/', views.tag_manage, name='tag_manage'),
 ] 

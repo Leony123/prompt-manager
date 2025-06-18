@@ -10,10 +10,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_http_methods
 from django.http import JsonResponse
 import json
-import requests # 引入 requests 库
-from langchain_community.llms import Ollama
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain_ollama.llms import OllamaLLM
+
 
 # Create your views here.
 
@@ -210,7 +210,7 @@ def ollama_chat(request):
 
             # 使用 LangChain 调用 Ollama
             callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
-            llm = Ollama(
+            llm = OllamaLLM(
                 model=model,
                 callback_manager=callback_manager,
                 base_url="http://localhost:11434",
@@ -231,3 +231,52 @@ def ollama_chat(request):
             return JsonResponse({'success': False, 'error': f'对话请求失败：{str(e)}'}, status=500)
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=405)
+
+@login_required
+def get_ollama_models(request):
+    """获取本地Ollama服务中可用的模型列表"""
+    try:
+        import requests
+        
+        # 请求Ollama API获取模型列表
+        response = requests.get('http://localhost:11434/api/tags', timeout=5)
+        
+        if response.status_code == 200:
+            data = response.json()
+            models = []
+            
+            # 提取模型名称
+            for model in data.get('models', []):
+                model_name = model.get('name', '')
+                if model_name and 'embed' not in model_name:
+                    # 移除embed模型
+                    models.append(model_name)
+            
+            # 去重并排序
+            models = sorted(list(set(models)))
+            
+            return JsonResponse({
+                'success': True, 
+                'models': models
+            })
+        else:
+            return JsonResponse({
+                'success': False, 
+                'error': f'Ollama服务响应错误: {response.status_code}'
+            }, status=500)
+            
+    except requests.exceptions.ConnectionError:
+        return JsonResponse({
+            'success': False, 
+            'error': '无法连接到Ollama服务，请确保Ollama正在运行'
+        }, status=503)
+    except requests.exceptions.Timeout:
+        return JsonResponse({
+            'success': False, 
+            'error': '请求Ollama服务超时'
+        }, status=504)
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': f'获取模型列表失败: {str(e)}'
+        }, status=500)
