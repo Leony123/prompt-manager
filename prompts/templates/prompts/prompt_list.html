@@ -608,7 +608,7 @@
 {% endif %}
 
 </div>
-<div id="copySuccess" class="copy-success">
+<div id="copySuccess" class="copy-success" style="z-index: 99999;">
   <i class="bi bi-check-circle me-2"></i>已复制到剪贴板
 </div>
 
@@ -658,17 +658,46 @@
   }
 
   function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-      const copySuccess = document.querySelector('.copy-success');
-      if (copySuccess) {
-        copySuccess.classList.add('show');
-        setTimeout(() => {
-          copySuccess.classList.remove('show');
-        }, 2000);
-      }
-    }).catch(err => {
-      console.error('Failed to copy: ', err);
-    });
+    // 优先使用 Clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        showCopyToast();
+      }).catch(err => {
+        fallbackCopyTextToClipboard(text);
+      });
+    } else {
+      fallbackCopyTextToClipboard(text);
+    }
+  }
+
+  function fallbackCopyTextToClipboard(text) {
+    // 创建临时 textarea
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    // 避免页面滚动
+    textArea.style.position = "fixed";
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      showCopyToast();
+    } catch (err) {
+      alert('复制失败，请手动复制');
+    }
+    document.body.removeChild(textArea);
+  }
+
+  function showCopyToast() {
+    const copySuccess = document.getElementById('copySuccess');
+    if (copySuccess) {
+      copySuccess.classList.add('show');
+      setTimeout(() => {
+        copySuccess.classList.remove('show');
+      }, 2000);
+    }
   }
 
   // Delete Prompt Modal logic
@@ -728,7 +757,7 @@
       const promptId = {{ prompt.id }};
       const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : '';
 
-      fetch(`/prompts/update_prompt/${promptId}/`, {
+      fetch(`/api/prompt/${promptId}/update/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -743,7 +772,7 @@
         return response.json();
       })
       .then(data => {
-        if (data.status === 'success') {
+        if (data.success) {
           if (promptSaveSuccessToast) {
             promptSaveSuccessToast.classList.add('show');
             setTimeout(() => {
@@ -753,7 +782,7 @@
           if (promptContentDisplay) promptContentDisplay.innerText = data.content;
           originalContent = data.content;
         } else {
-          alert('更新失败：' + data.message);
+          alert('更新失败：' + (data.error || data.message));
         }
         // Revert to display mode (hide save/cancel, KEEP edit button visible)
         if (promptContentEdit) promptContentEdit.style.display = 'none';
