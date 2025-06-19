@@ -23,3 +23,5 @@ python-dateutil==2.8.2  # 日期时间处理
 
 langchain==0.3.25
 requests==2.31.0  # HTTP请求库，用于与Ollama API通信
+python-dateutil==2.8.2  # 日期时间处理 
+langchain_community==0.3.10
